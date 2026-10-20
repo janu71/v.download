@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MY OVERTIME BD - Downloader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            background-color: #1e1b31;
+            background-image: radial-gradient(circle at top, #2d2749 0%, #161424 100%);
+            min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: #ffffff;
+        }
+        .container {
+            width: 100%; max-width: 400px; background: rgba(43, 38, 66, 0.6);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 28px;
+            padding: 35px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); text-align: center;
+        }
+        h1 { font-family: 'Inter', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .title-my { color: #ff1e5a; }
+        .title-overtime { background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .title-bd { color: #ff1e5a; }
+        .subtitle { font-size: 13px; color: #b0b0c0; margin-bottom: 25px; line-height: 1.5; }
+        
+        .platform-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .platform-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 10px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent; color: #b0b0c0; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: all 0.3s ease; font-family: 'Inter', sans-serif;
+        }
+        .platform-btn.active { border: none; color: #ffffff; font-weight: 600; transform: translateY(-2px); }
+        .platform-btn[data-platform="tiktok"].active { background: linear-gradient(90deg, #ff1e5a 0%, #00e5ff 100%); box-shadow: 0 8px 25px rgba(255, 30, 90, 0.3); }
+        .platform-btn[data-platform="facebook"].active { background: linear-gradient(90deg, #1877F2 0%, #00e5ff 100%); box-shadow: 0 8px 25px rgba(24, 119, 242, 0.3); }
+        .platform-btn[data-platform="youtube"].active { background: linear-gradient(90deg, #FF0000 0%, #ff4d4d 100%); box-shadow: 0 8px 25px rgba(255, 0, 0, 0.3); }
+        .platform-btn[data-platform="likee"].active { background: linear-gradient(90deg, #ff00cc 0%, #333399 100%); box-shadow: 0 8px 25px rgba(255, 0, 204, 0.3); }
+        .platform-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+        .url-input {
+            width: 100%; padding: 16px 20px; background-color: rgba(23, 20, 35, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; color: #ffffff;
+            font-size: 15px; font-family: 'Hind Siliguri', sans-serif; outline: none; transition: all 0.3s ease; margin-bottom: 20px;
+        }
+        .url-input::placeholder { color: #7a7a8c; }
+        .url-input:focus { border-color: rgba(0, 229, 255, 0.5); box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); }
+
+        .download-btn {
+            width: 100%; padding: 16px; border: none; border-radius: 14px;
+            background: linear-gradient(90deg, #ff1e5a 0%, #00e5ff 100%); color: #ffffff;
+            font-size: 17px; font-weight: 700; font-family: 'Hind Siliguri', sans-serif;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(255, 30, 90, 0.25); transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .download-btn:active { transform: scale(0.97); }
+        .download-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .result-area { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.2); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .result-area.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .result-title { font-size: 14px; color: #b0b0c0; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .result-link {
+            display: block; width: 100%; padding: 15px; background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.3); color: #00e5ff; text-decoration: none;
+            border-radius: 10px; font-weight: 600; transition: background 0.3s ease;
+        }
+        .error-msg { display: none; margin-top: 15px; color: #ff4d4d; font-size: 14px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>
+            <span class="title-my">MY</span> 
+            <span class="title-overtime">OVERTIME</span> 
+            <span class="title-bd">BD</span>
+        </h1>
+        <p class="subtitle">All-in-One Video Downloader (No Watermark)</p>
+
+        <div class="platform-selector">
+            <button class="platform-btn active" data-platform="tiktok" onclick="selectPlatform('tiktok')">
+                <svg viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                TikTok
+            </button>
+            <button class="platform-btn" data-platform="facebook" onclick="selectPlatform('facebook')">
+                <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Facebook
+            </button>
+            <button class="platform-btn" data-platform="youtube" onclick="selectPlatform('youtube')">
+                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                YouTube
+            </button>
+            <button class="platform-btn" data-platform="likee" onclick="selectPlatform('likee')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                Likee
+            </button>
+        </div>
+
+        <input type="url" id="videoUrl" class="url-input" placeholder="ভিডিও লিংক এখানে পেস্ট করুন...">
+
+        <button id="downloadBtn" class="download-btn" onclick="handleDownload()">
+            <span id="btnText">ডাউনলোড লিংক তৈরি করুন</span>
+            <div id="spinner" class="spinner"></div>
+        </button>
+
+        <div id="errorMsg" class="error-msg"></div>
+
+        <div id="resultArea" class="result-area">
+            <div id="resultTitle" class="result-title"></div>
+            <a id="downloadLink" href="#" target="_blank" class="result-link">ভিডিও ডাউনলোড করুন 📥</a>
+        </div>
+    </div>
+
+    <script>
+        let currentPlatform = 'tiktok';
+
+        function selectPlatform(platform) {
+            currentPlatform = platform;
+            document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-platform="${platform}"]`).classList.add('active');
+            document.getElementById('resultArea').classList.remove('active');
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        async function handleDownload() {
+            const urlInput = document.getElementById('videoUrl').value.trim();
+            const btn = document.getElementById('downloadBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+            const errorMsg = document.getElementById('errorMsg');
+            const resultArea = document.getElementById('resultArea');
+            const resultTitle = document.getElementById('resultTitle');
+            const downloadLink = document.getElementById('downloadLink');
+
+            errorMsg.style.display = 'none';
+            resultArea.classList.remove('active');
+
+            if (!urlInput) {
+                errorMsg.textContent = 'অনুগ্রহ করে একটি ভিডিও লিংক পেস্ট করুন।';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.textContent = 'প্রসেস হচ্ছে...';
+            spinner.style.display = 'block';
+
+            try {
+                const API_ENDPOINT = '/api/download'; 
+
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlInput, platform: currentPlatform })
+                });
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("সার্ভার থেকে ভুল ডেটা আসছে। api/app.py ফাইলটি সঠিক জায়গায় আছে কিনা চেক করুন।");
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.videoUrl) {
+                    resultTitle.textContent = data.title || 'ভিডিও সফলভাবে পাওয়া গেছে!';
+                    downloadLink.href = data.videoUrl;
+                    resultArea.classList.add('active');
+                } else {
+                    throw new Error(data.error || 'ডাউনলোড লিংক পাওয়া যায়নি।');
+                }
+
+            } catch (error) {
+                errorMsg.textContent = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'ডাউনলোড লিংক তৈরি করুন';
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
